@@ -54,50 +54,68 @@ int build_cmd_buff(char *cmd_line, cmd_buff_t* cmd)
 {
     char* commands = (char*)malloc(strlen(cmd_line)* sizeof(char));
     commands = strtok(cmd_line, " ");
-    //printf("Command: %s\n", commands);
     char* args[ARG_MAX + 1];
     int count = 0;
-    
-    while(commands != NULL) {
-        char* copy = (char*)malloc(strlen(commands)* sizeof(char));
+    char* copy = (char*)malloc(strlen(commands)* sizeof(char));
+    strcpy(copy, commands);
+    copy[strcspn(commands, "\n")] = '\0';
+    char* delimiter;
+    if(strcmp(copy, "echo") == 0) {
+        delimiter = "\"";
+    }
+    else {
+        delimiter = " "; 
+    }
+    while((commands != NULL) && (commands[1] != '\n')) {
+        copy = (char*)malloc(strlen(commands)* sizeof(char));
         strcpy(copy, commands);
         copy[strcspn(commands, "\n")] = '\0';
-        commands = strtok(NULL," ");
         args[count] = (char*)malloc(strlen(copy)* sizeof(char));
         strcpy(args[count], copy);
         count = count + 1;
-        
+        if(count > ARG_MAX) {
+            printf(CMD_ARGV_MAX, ARG_MAX);
+            return 0;
+        }
+        commands = strtok(NULL,delimiter);        
     }
+    
     args[count] = 0;
-    int f_result, c_result;
-    f_result = fork();
-    if (f_result < 0)
-    {
-        perror("fork error");
-        exit(1);
-    }
-    if (f_result == 0)
-    {
-        prctl(PR_SET_PDEATHSIG, SIGTERM);
-        int rc = 0;
-        rc = execvp(args[0], args);
-        if (rc < 0)
-        {
-            perror("fork error");
-            exit(42);
+    if (strcmp(args[0], "cd") == 0) {
+        if(args[1] != NULL) {
+            chdir(args[1]);
         }
     }
-    else
-    {
-        wait(&c_result);
+    else {
+        int f_result, c_result;
+        f_result = fork();
+        if (f_result < 0)
+        {
+            perror("fork error");
+            exit(1);
+        }
+        if (f_result == 0)
+        {
+            prctl(PR_SET_PDEATHSIG, SIGTERM);
+            int rc = 0;
+            rc = execvp(args[0], args);
+            if (rc < 0)
+            {
+                perror("fork error");
+                exit(42);
+            }
+        }
+        else
+        {
+            wait(&c_result);
+        }
     }
-
     return 0;
     exit(0);
 }
 int exec_local_cmd_loop()
 {
-    char *cmd_buff[500];
+    char *cmd_buff[SH_CMD_MAX * EXE_MAX + ARG_MAX];
     
     while (1)
     {
@@ -112,7 +130,7 @@ int exec_local_cmd_loop()
         else {
             char* copy = (char*)malloc(strlen(cmd_buff)* sizeof(char));
             strcpy(copy, cmd_buff);
-            copy[strcspn(cmd_buff, "\n")] = '\0';
+            copy[strcspn(cmd_buff, "\n") - 1] = '\0';
             if(strcmp(EXIT_CMD, copy) == 0) {
                 break;
             }      
@@ -120,15 +138,5 @@ int exec_local_cmd_loop()
             build_cmd_buff(&cmd_buff, &cmd);
         }
     }
-    // TODO IMPLEMENT MAIN LOOP
-
-    // TODO IMPLEMENT parsing input to cmd_buff_t *cmd_buff
-
-    // TODO IMPLEMENT if built-in command, execute builtin logic for exit, cd (extra credit: dragon)
-    // the cd command should chdir to the provided directory; if no directory is provided, do nothing
-
-    // TODO IMPLEMENT if not built-in command, fork/exec as an external command
-    // for example, if the user input is "ls -l", you would fork/exec the command "ls" with the arg "-l"
-
     return OK;
 }

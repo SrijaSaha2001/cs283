@@ -46,7 +46,7 @@
  */
 int main()
 {
-    char *cmd_buff[500];
+    char *cmd_buff[SH_CMD_MAX * EXE_MAX + ARG_MAX];
     while (1)
     {
         printf("%s", SH_PROMPT);

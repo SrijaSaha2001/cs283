@@ -69,6 +69,7 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
         while(end < strlen(copy_commands)) {
             if((copy_commands[end] == ' ') || (end == (strlen(copy_commands) - 1))) {
                 if(cmdFound == 0) {
+                    //copying command
                     char* extract = (char*)malloc((end - start)* sizeof(char));
                     int idx = 0;
                     while(start < end) {
@@ -83,6 +84,7 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
                     //free(extract);
                 }
                 else {
+                    //copying argument
                     hasArgument = 1;
                     char* extract = (char*)malloc((strlen(copy_commands) - start)* sizeof(char));
                     int idx = 0;

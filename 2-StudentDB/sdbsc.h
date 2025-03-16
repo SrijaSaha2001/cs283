@@ -1,6 +1,6 @@
 #ifndef __SDB_H__
 
-#include "db.h" //get student record type
+//#include "db.h" //get student record type
 
 //prototypes for functions go below for this assignment
 int open_db(char *dbFile, bool should_truncate);
@@ -13,6 +13,7 @@ int validate_range(int id, int gpa);
 int count_db_records(int fd);
 int print_db(int fd);
 void usage(char *);
+
 
 //error codes to be returned from individual functions
 // NO_ERROR is returned if there are no errors
